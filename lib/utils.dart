@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 class Pages {
   static const String Home = 'home';
   static const String Settings = 'settings';
+  static const String Leaderboard = 'leaderboard';
 }
 
 class Utils {
@@ -31,6 +32,11 @@ class Utils {
   static int xpForLevel(int level) {
     final exponent = log(difficulty) / log(votingLevel);
     return (pow(level, exponent) * xpPerIssue).floor();
+  }
+
+  static int xpForNextLevel(int totalXP) {
+    final l = level(totalXP);
+    return totalXP - xpForLevel(l);
   }
 
   static double progress(int totalXP) {

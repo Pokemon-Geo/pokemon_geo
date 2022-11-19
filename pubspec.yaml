@@ -49,6 +49,7 @@ dependencies:
   http: ^0.13.5
   image_picker: ^0.8.6
   flutter_rounded_progress_bar: ^0.2.0
+  confetti: ^0.7.0
 
 dev_dependencies:
   flutter_test:

@@ -27,15 +27,15 @@ class Issue {
 }
 
 class User {
-  int id;
+  String guid;
   String name;
-
-  User(this.id, this.name, this.points);
-
+  String email;
   int points;
 
+  User(this.guid, this.name, this.email, this.points);
+
   factory User.fromJson(Map<String, dynamic> data) =>
-      User(data["guid"], data["name"], data["points"]);
+      User(data["guid"], data["name"], data["email"], data["points"]);
 }
 
 class API extends ChangeNotifier {
@@ -49,7 +49,6 @@ class API extends ChangeNotifier {
 
   int get level => Utils.level(totalXP);
   List<Issue> issues = [];
-  List<User> users = [];
 
   Future<String> _get(String url) => _getParams(url, null);
 
@@ -72,28 +71,28 @@ class API extends ChangeNotifier {
   }
 
   Future<void> fetchIssues() async {
-    final parsed =
-        json.decode(await _get("issues"))["data"].cast<Map<String, dynamic>>();
+    final parsed = json
+        .decode(await _get("issues/${Config.uuid}/"))["data"]
+        .cast<Map<String, dynamic>>();
     issues = parsed.map<Issue>((json) => Issue.fromJson(json)).toList();
     notifyListeners();
   }
 
   Future<void> fetchScore() async {
-    final user = await _get("user/${Config.uuid}");
+    final user = await _get("user/${Config.uuid}/");
     totalXP = jsonDecode(user)["data"]["points"];
     notifyListeners();
   }
 
-  Future<void> fetchLeaderboard() async {
+  Future<List<User>> fetchLeaderboard() async {
     final parsed = json
-        .decode(await _get("leaderboard"))["data"]
+        .decode(await _get("leaderboard/"))["data"]
         .cast<Map<String, dynamic>>();
-    users = parsed.map<User>((json) => User.fromJson(json)).toList();
-    notifyListeners();
+    return parsed.map<User>((json) => User.fromJson(json)).toList();
   }
 
   Future<void> vote(int issueId, bool primary) async {
-    await _getParams("voting/${Config.uuid}/$issueId",
+    await _getParams("voting/${Config.uuid}/$issueId/",
         {"category": (primary ? "primary" : "footway")});
   }
 
@@ -109,12 +108,14 @@ class API extends ChangeNotifier {
     return jsonDecode(a.body)["thumb_1024_url"];
   }
 
-  Future<void> postPhoto(int issueId, XFile file) async {
+  Future<String> postPhoto(int issueId, XFile file) async {
     final image = await file.readAsBytes();
     var request = MultipartRequest(
-        "POST", Uri.https(serverUrl, "$api/photo/${Config.uuid}/$issueId"))
+        "POST", Uri.https(serverUrl, "$api/photo/${Config.uuid}/$issueId/"))
       ..headers.addAll(headers)
-      ..files.add(MultipartFile.fromBytes("file", image));
-    await _client.send(request);
+      ..files.add(
+          MultipartFile.fromBytes("file", image, filename: "$issueId.jpg"));
+    final response = await Response.fromStream(await _client.send(request));
+    return jsonDecode(response.body)["data"]["category"];
   }
 }

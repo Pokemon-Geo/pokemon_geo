@@ -80,6 +80,13 @@ class _HomePageState extends State<HomePage> {
             actions: [
               IconButton(
                 onPressed: () {
+                  Navigator.of(context).pushNamed(Pages.Leaderboard);
+                },
+                icon: const Icon(Icons.leaderboard),
+                tooltip: "Leaderboard",
+              ),
+              IconButton(
+                onPressed: () {
                   Navigator.of(context).pushNamed(Pages.Settings);
                 },
                 icon: const Icon(Icons.settings),
