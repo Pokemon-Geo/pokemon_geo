@@ -160,13 +160,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.7.0"
-  flutter_floating_map_marker_titles_core:
-    dependency: transitive
-    description:
-      name: flutter_floating_map_marker_titles_core
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.0"
   flutter_launcher_icons:
     dependency: "direct main"
     description:
@@ -209,13 +202,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  flutter_map_floating_marker_titles:
-    dependency: "direct main"
-    description:
-      name: flutter_map_floating_marker_titles
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0"
   flutter_map_location_marker:
     dependency: "direct main"
     description:
@@ -251,6 +237,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.7"
+  flutter_rounded_progress_bar:
+    dependency: "direct main"
+    description:
+      name: flutter_rounded_progress_bar
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -324,6 +317,41 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.2.2"
+  image_picker:
+    dependency: "direct main"
+    description:
+      name: image_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.6"
+  image_picker_android:
+    dependency: transitive
+    description:
+      name: image_picker_android
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.5+3"
+  image_picker_for_web:
+    dependency: transitive
+    description:
+      name: image_picker_for_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.10"
+  image_picker_ios:
+    dependency: transitive
+    description:
+      name: image_picker_ios
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.6+1"
+  image_picker_platform_interface:
+    dependency: transitive
+    description:
+      name: image_picker_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.6.2"
   ini:
     dependency: transitive
     description:
@@ -749,13 +777,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.12"
-  tflite:
-    dependency: "direct main"
-    description:
-      name: tflite
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.2"
   timezone:
     dependency: transitive
     description:

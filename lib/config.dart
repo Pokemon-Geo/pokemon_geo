@@ -78,7 +78,7 @@ class Config {
   static set darkMode(s) => _darkMode.set(s);
 
   static final ConfigValue<String> _uuid =
-      register("email", "a661f146-06d2-4729-bfde-4d97e1620ea3");
+      register("email", "A37CA11D-5D72-97CD-3312-8E6D288C572S");
 
   static get uuid => _uuid.value;
 

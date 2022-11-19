@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:pokemon_geo/pages/home.dart';
 import 'package:pokemon_geo/pages/settings.dart';
 import 'package:pokemon_geo/utils.dart';
+import 'package:provider/provider.dart';
 
+import 'api.dart';
 import 'config.dart';
 
 void main() {
@@ -35,16 +37,19 @@ class AppState extends State<App> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: darkNotifier,
-      builder: (BuildContext context, bool value, Widget? child) => MaterialApp(
-          title: 'Mister X',
-          theme: value ? ThemeData.dark() : ThemeData.light(),
-          initialRoute: Pages.Home,
-          routes: {
-            Pages.Home: (context) => const HomePage(),
-            Pages.Settings: (context) => const SettingsPage(),
-          }),
-    );
+    return ChangeNotifierProvider<API>(
+        create: (context) => API(),
+        child: ValueListenableBuilder(
+          valueListenable: darkNotifier,
+          builder: (BuildContext context, bool value, Widget? child) =>
+              MaterialApp(
+                  title: 'Pokemon Geo',
+                  theme: value ? ThemeData.dark() : ThemeData.light(),
+                  initialRoute: Pages.Home,
+                  routes: {
+                Pages.Home: (context) => const HomePage(),
+                Pages.Settings: (context) => const SettingsPage(),
+              }),
+        ));
   }
 }

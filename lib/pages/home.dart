@@ -1,15 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:flutter_map_tile_caching/fmtc_advanced.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:pokemon_geo/pages/issue.dart';
 import 'package:pokemon_geo/utils.dart';
 import 'package:provider/provider.dart';
 
-import '../api/api.dart';
+import '../api.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -37,26 +40,37 @@ class _HomePageState extends State<HomePage> {
     loaded = Future.wait([permsAndGPS(), setupCache()]);
     _centerOnLocationUpdate = CenterOnLocationUpdate.always;
     _centerCurrentLocationStreamController = StreamController<double?>();
+    final api = Provider.of<API>(context, listen: false);
+    api.fetchScore();
+    api.fetchIssues();
     /*refresh = Timer.periodic(const Duration(seconds: 10), (timer) {
-      Provider.of<API>(context, listen: false).updatePlayers();
-      Geolocator.getCurrentPosition().then((pos) =>
-          Provider.of<API>(context, listen: false).sendLocalPlayerPos(pos));
+      Geolocator.getCurrentPosition().then((pos) => api.fetchIssues(pos));
     });*/
   }
 
   @override
   void dispose() {
     _centerCurrentLocationStreamController.close();
-    refresh.cancel();
+    //refresh.cancel();
     super.dispose();
   }
 
-  Marker createMarker(Issues issue) => Marker(
+  Marker createMarker(Issue issue) => Marker(
         point: issue.pos,
         width: 40,
         height: 40,
         builder: (_) => IconButton(
-            onPressed: () => print("hi"),
+            onPressed: () async {
+              final XFile? file = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IssuePage(issue.imageId),
+                  ));
+              if (file != null) {
+                Provider.of<API>(context, listen: false)
+                    .postPhoto(issue.issueId, file);
+              }
+            },
             icon: const Icon(Icons.location_on, size: 40, color: Colors.black)),
         anchorPos: AnchorPos.align(AnchorAlign.top),
       );
@@ -110,6 +124,11 @@ class _HomePageState extends State<HomePage> {
                     userAgentPackageName: 'dev.banana.pokemon_geo',
                     keepBuffer: 3,
                   ),
+                  CurrentLocationLayer(
+                    centerCurrentLocationStream:
+                        _centerCurrentLocationStreamController.stream,
+                    centerOnLocationUpdate: _centerOnLocationUpdate,
+                  ),
                   MarkerClusterLayerWidget(
                       options: MarkerClusterLayerOptions(
                           maxClusterRadius: 45,
@@ -131,11 +150,23 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               ))),
-                  CurrentLocationLayer(
-                    centerCurrentLocationStream:
-                        _centerCurrentLocationStreamController.stream,
-                    centerOnLocationUpdate: _centerOnLocationUpdate,
-                  ),
+                ],
+                nonRotatedChildren: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Row(children: [
+                      Expanded(
+                          child: LinearProgressIndicator(
+                              minHeight: 20,
+                              color: Colors.blue,
+                              value: Utils.progress(api.totalXP))),
+                      CircleAvatar(
+                        backgroundColor: Colors.blue,
+                        child: Text("${Utils.level(api.totalXP)}",
+                            style: const TextStyle(color: Colors.white)),
+                      )
+                    ]),
+                  )
                 ],
               );
             } else if (snapshot.hasError) {
@@ -184,20 +215,29 @@ class _HomePageState extends State<HomePage> {
             permission == LocationPermission.always) ||
         !await Geolocator.isLocationServiceEnabled()) {
       showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => Column(
-                children: [
-                  const Text("Please enable GPS and give permission"),
-                  TextButton(
-                    onPressed: () {
-                      permsAndGPS();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text("Retry"),
-                  )
-                ],
-              ));
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text("GPS required"),
+          content: const Text(
+              "Please enable location services and give the permission"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+              },
+              child: const Text("Exit App"),
+            ),
+            TextButton(
+              onPressed: () {
+                permsAndGPS();
+                Navigator.of(context).pop();
+              },
+              child: const Text("Retry"),
+            )
+          ],
+        ),
+      );
     }
   }
 
