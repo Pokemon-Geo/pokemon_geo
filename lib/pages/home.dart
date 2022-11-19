@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
     return Consumer<API>(
       builder: (context, api, child) => Scaffold(
         appBar: AppBar(
-            title: const Text('Fix them issues'),
+            title: const Text('Fix all the issues'),
             automaticallyImplyLeading: false,
             actions: [
               IconButton(
@@ -142,14 +142,11 @@ class _HomePageState extends State<HomePage> {
                           ),
                           markers: api.issues.map(createMarker).toList(),
                           builder: (context, markers) => Container(
-                                decoration: BoxDecoration(
+                            decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
-                                    color: Colors.blue),
+                                    color: Theme.of(context).primaryColor),
                                 child: Center(
-                                  child: Text(
-                                    markers.length.toString(),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
+                                  child: Text(markers.length.toString()),
                                 ),
                               ))),
                 ],
@@ -169,11 +166,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       CircleAvatar(
                           radius: 20,
-                          backgroundColor: Colors.blue,
-                          child: Text(
-                            "${Utils.level(api.totalXP)}",
-                            style: const TextStyle(color: Colors.white),
-                          ))
+                          child: Text("${Utils.level(api.totalXP)}"))
                     ],
                   )
                 ],

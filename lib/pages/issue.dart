@@ -20,7 +20,7 @@ class _IssuePageState extends State<IssuePage> {
     return Column(
       children: [
         const Text("Solve the issue"),
-        Image.network("https://graph.mapillary.com/:${widget.id}",
+        Image.network("https://graph.mapillary.com/${widget.id}",
             headers: const {
               HttpHeaders.authorizationHeader:
                   'OAuth MLY|6267347309961156|ec0c7ce7dee135a998e9c786c224caf1'
