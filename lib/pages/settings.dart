@@ -12,6 +12,19 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  late final TextEditingController textEditingController;
+
+  @override
+  void initState() {
+    super.initState();
+    textEditingController = TextEditingController(text: Config.uuid);
+    textEditingController.addListener(() {
+      if (textEditingController.text.isNotEmpty) {
+        Config.uuid = textEditingController.text;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +41,9 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         ListTile(
           title: const Text("UUID"),
-          subtitle: Text(Config.uuid),
+          subtitle: TextField(
+            controller: textEditingController,
+          ),
         ),
         _title("Legal"),
         const ListTile(title: Text("Map and Icon ©OpenStreetMap")),
