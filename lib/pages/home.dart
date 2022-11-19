@@ -24,6 +24,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   static const double nearZoom = 17;
+
+  /// in meter
+  static const maxTimerDistance = 3599;
   late CenterOnLocationUpdate _centerOnLocationUpdate;
   late StreamController<double?> _centerCurrentLocationStreamController;
   MapController map = MapController();
@@ -33,7 +36,9 @@ class _HomePageState extends State<HomePage> {
   late FMTCTileProvider tileProvider;
   late Future<List<dynamic>> loaded;
 
-  late final Timer refresh;
+  Timer? timer;
+  int seconds = -1;
+  late Issue current;
 
   @override
   void initState() {
@@ -44,29 +49,34 @@ class _HomePageState extends State<HomePage> {
     final api = Provider.of<API>(context, listen: false);
     api.fetchScore();
     api.fetchIssues();
-    /*refresh = Timer.periodic(const Duration(seconds: 10), (timer) {
-      Geolocator.getCurrentPosition().then((pos) => api.fetchIssues(pos));
-    });*/
   }
 
   @override
   void dispose() {
     _centerCurrentLocationStreamController.close();
-    //refresh.cancel();
     super.dispose();
   }
 
   Marker createMarker(Issue issue) => Marker(
-        point: issue.pos,
+    point: issue.pos,
         width: 40,
         height: 40,
         builder: (_) => IconButton(
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => IssuePage(issue),
-                )),
-            icon: const Icon(Icons.location_on, size: 40, color: Colors.black)),
+            onPressed: () {
+              Geolocator.getCurrentPosition().then((pos) {
+                if (Utils.distanceToIssue(issue, pos) <
+                    Utils.acceptableDistance) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            IssuePage(issue, timer == null ? 1 : 2),
+                      ));
+                }
+              });
+            },
+            icon: Icon(Icons.location_on,
+                size: 40, color: timer == null ? Colors.black : Colors.red)),
         anchorPos: AnchorPos.align(AnchorAlign.top),
       );
 
@@ -140,9 +150,11 @@ class _HomePageState extends State<HomePage> {
                             padding: EdgeInsets.all(50),
                             maxZoom: 15,
                           ),
-                          markers: api.issues.map(createMarker).toList(),
+                          markers: timer == null
+                              ? api.issues.map(createMarker).toList()
+                              : [createMarker(current)],
                           builder: (context, markers) => Container(
-                            decoration: BoxDecoration(
+                                decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
                                     color: Theme.of(context).primaryColor),
                                 child: Center(
@@ -166,9 +178,68 @@ class _HomePageState extends State<HomePage> {
                       ),
                       CircleAvatar(
                           radius: 20,
-                          child: Text("${Utils.level(api.totalXP)}"))
+                          child: Text(
+                            "${Utils.level(api.totalXP)}",
+                            style: const TextStyle(fontSize: 24),
+                          ))
                     ],
-                  )
+                  ),
+                  if (Utils.canSpeedrun(api.totalXP))
+                    Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
+                              borderRadius: BorderRadius.circular(16)),
+                          margin: const EdgeInsets.all(16),
+                          child: timer == null
+                              ? IconButton(
+                                  tooltip: "Speedrun",
+                                  icon: const Icon(Icons.timer),
+                                  onPressed: () {
+                                    Geolocator.getCurrentPosition().then(
+                                      (pos) {
+                                        final m = <Issue, double>{};
+                                        double d = double.infinity;
+                                        for (var issue in api.issues) {
+                                          m[issue] =
+                                              Utils.distanceToIssue(issue, pos);
+                                          if (m[issue]! > 500 &&
+                                              m[issue]! < d) {
+                                            current = issue;
+                                            d = m[issue]!;
+                                          }
+                                        }
+                                        // too far away, no issue found
+                                        if (d >= maxTimerDistance) return;
+                                        current.points *= 2;
+                                        seconds = d.floor();
+                                        timer = Timer.periodic(
+                                          const Duration(seconds: 1),
+                                          (Timer timer1) {
+                                            if (seconds == 0) {
+                                              stopTimer();
+                                            } else {
+                                              setState(() {
+                                                seconds--;
+                                              });
+                                            }
+                                          },
+                                        );
+                                      },
+                                    );
+                                  })
+                              : ElevatedButton(
+                                  onPressed: stopTimer,
+                                  child: Text(
+                                    Duration(seconds: seconds)
+                                        .toString()
+                                        .substring(2, 7),
+                                    style: const TextStyle(
+                                        fontSize: 50, color: Colors.white),
+                                  ),
+                                ),
+                        ))
                 ],
               );
             } else if (snapshot.hasError) {
@@ -190,6 +261,14 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void stopTimer() {
+    setState(() {
+      timer?.cancel();
+      timer = null;
+      current.points = (current.points / 2).floor();
+    });
   }
 
   Future<void> permsAndGPS() async {

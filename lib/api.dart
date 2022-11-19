@@ -108,10 +108,10 @@ class API extends ChangeNotifier {
     return jsonDecode(a.body)["thumb_1024_url"];
   }
 
-  Future<String> postPhoto(int issueId, XFile file) async {
+  Future<String> postPhoto(int issueId, XFile file, int scale) async {
     final image = await file.readAsBytes();
-    var request = MultipartRequest(
-        "POST", Uri.https(serverUrl, "$api/photo/${Config.uuid}/$issueId/"))
+    var request = MultipartRequest("POST",
+        Uri.https(serverUrl, "$api/photo/${Config.uuid}/$issueId/$scale"))
       ..headers.addAll(headers)
       ..files.add(
           MultipartFile.fromBytes("file", image, filename: "$issueId.jpg"));

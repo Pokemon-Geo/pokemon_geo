@@ -31,6 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: Text(Config.uuid),
         ),
         _title("Legal"),
+        const ListTile(title: Text("Map and Icon ©OpenStreetMap")),
         FutureBuilder(
           future: PackageInfo.fromPlatform(),
           builder: (context, data) {

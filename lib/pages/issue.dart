@@ -12,8 +12,9 @@ enum Phase { noPhoto, uploading, canVote, finished }
 
 class IssuePage extends StatefulWidget {
   final Issue issue;
+  final int scale;
 
-  const IssuePage(this.issue, {Key? key}) : super(key: key);
+  const IssuePage(this.issue, this.scale, {Key? key}) : super(key: key);
 
   @override
   State<IssuePage> createState() => _IssuePageState();
@@ -23,62 +24,73 @@ class _IssuePageState extends State<IssuePage> {
   final ImagePicker _picker = ImagePicker();
   Phase phase = Phase.noPhoto;
   late String category;
-  late ConfettiController _controllerCenter;
+  late ConfettiController _confettiController;
 
   @override
   void initState() {
     super.initState();
-    _controllerCenter =
+    _confettiController =
         ConfettiController(duration: const Duration(seconds: 3));
   }
 
   @override
   void dispose() {
-    _controllerCenter.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final api = Provider.of<API>(context, listen: false);
-    return Scaffold(
-        body: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Text(
-          "Solve the issue",
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        ConfettiWidget(
-          confettiController: _controllerCenter,
-          blastDirection: pi,
-          blastDirectionality: BlastDirectionality.explosive,
-          numberOfParticles: 50,
-        ),
-        Text(
-          phase == Phase.finished || phase == Phase.canVote
-              ? "You got ${widget.issue.points} points!"
-              : "Solve this issue and get ${widget.issue.points} points!",
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        FutureBuilder(
-            future: api.getImageUrl(widget.issue.imageId),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Image.network(snapshot.data!);
-              } else if (snapshot.hasError) {
-                return Text(snapshot.error.toString());
-              }
-              return const Center(child: CircularProgressIndicator());
-            }),
-        ...action(api)
-      ],
-    ));
+    return WillPopScope(
+      onWillPop: () async {
+        api.fetchIssues();
+        api.fetchScore();
+        return true;
+      },
+      child: Scaffold(
+          body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(
+            "Solve the issue",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirection: -pi,
+            blastDirectionality: BlastDirectionality.explosive,
+            numberOfParticles: 50,
+            child: FutureBuilder(
+                future: api.getImageUrl(widget.issue.imageId),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Image.network(snapshot.data!);
+                  } else if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  }
+                  return SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: 320,
+                      child: const CircularProgressIndicator());
+                }),
+          ),
+          Text(
+            phase == Phase.finished || phase == Phase.canVote
+                ? "You got ${widget.issue.points} points!"
+                : "Solve this issue and get ${widget.issue.points} points!",
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          ...action(api)
+        ],
+      )),
+    );
   }
 
   List<Widget> action(API api) {
     var finishButton = ElevatedButton(
         onPressed: () {
+          api.fetchIssues();
           api.fetchScore();
           Navigator.pop(context);
         },
@@ -94,9 +106,10 @@ class _IssuePageState extends State<IssuePage> {
                 setState(() {
                   phase = Phase.uploading;
                 });
-                category = await api.postPhoto(widget.issue.issueId, photo);
+                category = await api.postPhoto(
+                    widget.issue.issueId, photo, widget.scale);
                 setState(() {
-                  _controllerCenter.play();
+                  _confettiController.play();
                   phase = Utils.canVote(api.totalXP)
                       ? Phase.canVote
                       : Phase.finished;
@@ -107,13 +120,15 @@ class _IssuePageState extends State<IssuePage> {
       case Phase.canVote:
         return [
           Text(
-              "You have earned the privilege to vote. Our AI thinks this is $category. What do you think?"),
+            "You have earned the privilege to vote. Our AI thinks this is $category. What do you think?",
+            textAlign: TextAlign.center,
+          ),
           Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
             ElevatedButton(
                 onPressed: () async {
                   await api.vote(widget.issue.issueId, true);
                   setState(() {
-                    _controllerCenter.play();
+                    _confettiController.play();
                     phase = Phase.finished;
                   });
                 },
@@ -122,7 +137,7 @@ class _IssuePageState extends State<IssuePage> {
                 onPressed: () async {
                   await api.vote(widget.issue.issueId, false);
                   setState(() {
-                    _controllerCenter.play();
+                    _confettiController.play();
                     phase = Phase.finished;
                   });
                 },

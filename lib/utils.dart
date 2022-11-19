@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+
+import 'api.dart';
 
 class Pages {
   static const String Home = 'home';
@@ -12,11 +15,23 @@ class Pages {
 class Utils {
   static LatLng Munich = LatLng(48.126154762110744, 11.579897939780327);
   static const Distance distance = Distance();
-  static const int votingLevel = 10, difficulty = 50, xpPerIssue = 100;
+  static const int votingLevel = 10,
+      speedrunLevel = 5,
+      difficulty = 50,
+      xpPerIssue = 100;
+  static const int acceptableDistance = 100000;
 
   static Text distanceText(LatLng a, LatLng b) {
     var km = distance.as(LengthUnit.Kilometer, a, b);
     return Text(km > 1 ? "${km}km" : "${distance.as(LengthUnit.Meter, a, b)}m");
+  }
+
+  static double distanceToIssue(Issue issue, Position pos) {
+    return distance.distance(issue.pos, LatLng(pos.latitude, pos.longitude));
+  }
+
+  static bool canSpeedrun(int totalXP) {
+    return level(totalXP) >= speedrunLevel;
   }
 
   static bool canVote(int totalXP) {
