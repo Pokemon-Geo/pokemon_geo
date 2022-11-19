@@ -9,7 +9,6 @@ import 'package:flutter_map_tile_caching/fmtc_advanced.dart';
 import 'package:flutter_rounded_progress_bar/flutter_rounded_progress_bar.dart';
 import 'package:flutter_rounded_progress_bar/rounded_progress_bar_style.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pokemon_geo/pages/issue.dart';
 import 'package:pokemon_geo/utils.dart';
 import 'package:provider/provider.dart';
@@ -62,17 +61,11 @@ class _HomePageState extends State<HomePage> {
         width: 40,
         height: 40,
         builder: (_) => IconButton(
-            onPressed: () async {
-              final XFile? file = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => IssuePage(issue.imageId),
-                  ));
-              if (file != null) {
-                Provider.of<API>(context, listen: false)
-                    .postPhoto(issue.issueId, file);
-              }
-            },
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => IssuePage(issue),
+                )),
             icon: const Icon(Icons.location_on, size: 40, color: Colors.black)),
         anchorPos: AnchorPos.align(AnchorAlign.top),
       );
@@ -101,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                 mapController: map,
                 options: MapOptions(
                   center: Utils.Munich,
-                  zoom: 6,
+                  zoom: 14,
                   maxZoom: 19,
                   keepAlive: true,
                   interactiveFlags:

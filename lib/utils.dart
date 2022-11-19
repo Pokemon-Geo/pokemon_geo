@@ -11,21 +11,25 @@ class Pages {
 class Utils {
   static LatLng Munich = LatLng(48.126154762110744, 11.579897939780327);
   static const Distance distance = Distance();
-  static const int labelingLevel = 10, difficulty = 50, xpPerIssue = 100;
+  static const int votingLevel = 10, difficulty = 50, xpPerIssue = 100;
 
   static Text distanceText(LatLng a, LatLng b) {
     var km = distance.as(LengthUnit.Kilometer, a, b);
     return Text(km > 1 ? "${km}km" : "${distance.as(LengthUnit.Meter, a, b)}m");
   }
 
+  static bool canVote(int totalXP) {
+    return level(totalXP) >= votingLevel;
+  }
+
   static int level(int totalXP) {
     final solved = totalXP / xpPerIssue;
-    final exponent = log(labelingLevel) / log(difficulty);
+    final exponent = log(votingLevel) / log(difficulty);
     return pow(solved, exponent).floor();
   }
 
   static int xpForLevel(int level) {
-    final exponent = log(difficulty) / log(labelingLevel);
+    final exponent = log(difficulty) / log(votingLevel);
     return (pow(level, exponent) * xpPerIssue).floor();
   }
 
