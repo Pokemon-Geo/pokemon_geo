@@ -6,6 +6,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:flutter_map_tile_caching/fmtc_advanced.dart';
+import 'package:flutter_rounded_progress_bar/flutter_rounded_progress_bar.dart';
+import 'package:flutter_rounded_progress_bar/rounded_progress_bar_style.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pokemon_geo/pages/issue.dart';
@@ -152,20 +154,27 @@ class _HomePageState extends State<HomePage> {
                               ))),
                 ],
                 nonRotatedChildren: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Row(children: [
-                      Expanded(
-                          child: LinearProgressIndicator(
-                              minHeight: 20,
-                              color: Colors.blue,
-                              value: Utils.progress(api.totalXP))),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 40 + 2 * 4,
+                        width: MediaQuery.of(context).size.width - 50,
+                        child: RoundedProgressBar(
+                            style: RoundedProgressBarStyle(
+                                borderWidth: 0, widthShadow: 0),
+                            height: 40,
+                            margin: const EdgeInsets.all(4),
+                            borderRadius: BorderRadius.circular(24),
+                            percent: 100 * Utils.progress(api.totalXP)),
+                      ),
                       CircleAvatar(
-                        backgroundColor: Colors.blue,
-                        child: Text("${Utils.level(api.totalXP)}",
-                            style: const TextStyle(color: Colors.white)),
-                      )
-                    ]),
+                          radius: 20,
+                          backgroundColor: Colors.blue,
+                          child: Text(
+                            "${Utils.level(api.totalXP)}",
+                            style: const TextStyle(color: Colors.white),
+                          ))
+                    ],
                   )
                 ],
               );
