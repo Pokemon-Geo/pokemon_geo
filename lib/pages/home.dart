@@ -233,7 +233,12 @@ class _HomePageState extends State<HomePage> {
                           }
                         }
                         // too far away, no issue found
-                        if (d >= maxTimerDistance) return;
+                        if (d >= maxTimerDistance) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text(
+                                  "Couldn't find suitable issue. Are you too far away?")));
+                          return;
+                        }
                         current.points *= 2;
                         seconds = d.floor();
                         timer = Timer.periodic(
