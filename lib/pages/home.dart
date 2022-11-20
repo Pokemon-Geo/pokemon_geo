@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Marker createMarker(Issue issue) => Marker(
-    point: issue.pos,
+        point: issue.pos,
         width: 40,
         height: 40,
         builder: (_) => IconButton(
@@ -166,13 +166,13 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       SizedBox(
-                        height: 40 + 2 * 4,
+                        height: 40 + 2 * 8,
                         width: MediaQuery.of(context).size.width - 50,
                         child: RoundedProgressBar(
                             style: RoundedProgressBarStyle(
                                 borderWidth: 0, widthShadow: 0),
                             height: 40,
-                            margin: const EdgeInsets.all(4),
+                            margin: const EdgeInsets.all(8),
                             borderRadius: BorderRadius.circular(24),
                             percent: 100 * Utils.progress(api.totalXP)),
                       ),
@@ -184,62 +184,7 @@ class _HomePageState extends State<HomePage> {
                           ))
                     ],
                   ),
-                  if (Utils.canSpeedrun(api.totalXP))
-                    Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Container(
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
-                              borderRadius: BorderRadius.circular(16)),
-                          margin: const EdgeInsets.all(16),
-                          child: timer == null
-                              ? IconButton(
-                                  tooltip: "Speedrun",
-                                  icon: const Icon(Icons.timer),
-                                  onPressed: () {
-                                    Geolocator.getCurrentPosition().then(
-                                      (pos) {
-                                        final m = <Issue, double>{};
-                                        double d = double.infinity;
-                                        for (var issue in api.issues) {
-                                          m[issue] =
-                                              Utils.distanceToIssue(issue, pos);
-                                          if (m[issue]! > 500 &&
-                                              m[issue]! < d) {
-                                            current = issue;
-                                            d = m[issue]!;
-                                          }
-                                        }
-                                        // too far away, no issue found
-                                        if (d >= maxTimerDistance) return;
-                                        current.points *= 2;
-                                        seconds = d.floor();
-                                        timer = Timer.periodic(
-                                          const Duration(seconds: 1),
-                                          (Timer timer1) {
-                                            if (seconds == 0) {
-                                              stopTimer();
-                                            } else {
-                                              setState(() {
-                                                seconds--;
-                                              });
-                                            }
-                                          },
-                                        );
-                                      },
-                                    );
-                                  })
-                              : ElevatedButton(
-                                  onPressed: stopTimer,
-                                  child: Text(
-                                    Duration(seconds: seconds)
-                                        .toString()
-                                        .substring(2, 7),
-                                    style: const TextStyle(
-                                        fontSize: 50, color: Colors.white),
-                                  ),
-                                ),
-                        ))
+                  if (Utils.canSpeedrun(api.totalXP)) speedrun(context, api)
                 ],
               );
             } else if (snapshot.hasError) {
@@ -261,6 +206,59 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Align speedrun(BuildContext context, API api) {
+    return Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+              borderRadius: BorderRadius.circular(16)),
+          margin: const EdgeInsets.all(16),
+          child: timer == null
+              ? IconButton(
+                  tooltip: "Speedrun",
+                  icon: const Icon(Icons.timer),
+                  onPressed: () {
+                    Geolocator.getCurrentPosition().then(
+                      (pos) {
+                        final m = <Issue, double>{};
+                        double d = double.infinity;
+                        for (var issue in api.issues) {
+                          m[issue] = Utils.distanceToIssue(issue, pos);
+                          if (m[issue]! > 500 && m[issue]! < d) {
+                            current = issue;
+                            d = m[issue]!;
+                          }
+                        }
+                        // too far away, no issue found
+                        if (d >= maxTimerDistance) return;
+                        current.points *= 2;
+                        seconds = d.floor();
+                        timer = Timer.periodic(
+                          const Duration(seconds: 1),
+                          (Timer timer1) {
+                            if (seconds == 0) {
+                              stopTimer();
+                            } else {
+                              setState(() {
+                                seconds--;
+                              });
+                            }
+                          },
+                        );
+                      },
+                    );
+                  })
+              : ElevatedButton(
+                  onPressed: stopTimer,
+                  child: Text(
+                    Duration(seconds: seconds).toString().substring(2, 7),
+                    style: const TextStyle(fontSize: 50, color: Colors.white),
+                  ),
+                ),
+        ));
   }
 
   void stopTimer() {

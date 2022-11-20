@@ -39,7 +39,7 @@ class User {
 }
 
 class API extends ChangeNotifier {
-  static const String serverUrl = "de31-79-98-43-133.eu.ngrok.io";
+  static const String serverUrl = "50cd-79-98-43-133.eu.ngrok.io";
   static const String api = "api/v1";
   Map<String, String> headers = {
     HttpHeaders.contentTypeHeader: 'application/json'

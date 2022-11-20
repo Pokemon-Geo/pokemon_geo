@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
 
+import '../api.dart';
 import '../config.dart';
 import '../main.dart';
 
@@ -27,47 +29,55 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Einstellungen'),
-      ),
-      body: ListView(children: [
-        _title("General"),
-        SwitchListTile(
-          title: const Text("Dark Mode"),
-          value: Config.darkMode,
-          onChanged: (value) => setState(
-              () => Config.darkMode = AppState.darkNotifier.value = value),
+    return WillPopScope(
+      onWillPop: () async {
+        final api = Provider.of<API>(context, listen: false);
+        api.fetchScore();
+        api.fetchIssues();
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Einstellungen'),
         ),
-        ListTile(
-          title: const Text("UUID"),
-          subtitle: TextField(
-            controller: textEditingController,
+        body: ListView(children: [
+          _title("General"),
+          SwitchListTile(
+            title: const Text("Dark Mode"),
+            value: Config.darkMode,
+            onChanged: (value) => setState(
+                () => Config.darkMode = AppState.darkNotifier.value = value),
           ),
-        ),
-        _title("Legal"),
-        const ListTile(title: Text("Map and Icon ©OpenStreetMap")),
-        FutureBuilder(
-          future: PackageInfo.fromPlatform(),
-          builder: (context, data) {
-            if (data.hasData) {
-              return AboutListTile(
-                applicationName: data.requireData.appName,
-                applicationVersion:
-                    "${data.requireData.version}-build${data.requireData.buildNumber}",
-                applicationIcon: Image.asset(
-                  "assets/icon.png",
-                  width: 80,
-                ),
-                applicationLegalese: "©2022 Banana",
+          ListTile(
+            title: const Text("UUID"),
+            subtitle: TextField(
+              controller: textEditingController,
+            ),
+          ),
+          _title("Legal"),
+          const ListTile(title: Text("Map and Icon ©OpenStreetMap")),
+          FutureBuilder(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, data) {
+              if (data.hasData) {
+                return AboutListTile(
+                  applicationName: data.requireData.appName,
+                  applicationVersion:
+                      "${data.requireData.version}-build${data.requireData.buildNumber}",
+                  applicationIcon: Image.asset(
+                    "assets/icon.png",
+                    width: 80,
+                  ),
+                  applicationLegalese: "©2022 Banana",
+                );
+              }
+              return const ListTile(
+                title: Text("Loading..."),
               );
-            }
-            return const ListTile(
-              title: Text("Loading..."),
-            );
-          },
-        )
-      ]),
+            },
+          )
+        ]),
+      ),
     );
   }
 
